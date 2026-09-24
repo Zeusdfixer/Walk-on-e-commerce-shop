@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — WALKON Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <aside class="admin-sidebar" id="admin-sidebar"></aside>
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <h1>Dashboard</h1>
+          <p>Welcome back — here's how WALKON is doing.</p>
+        </div>
+        <a href="products.html" class="btn btn-primary">+ Add Product</a>
+      </div>
+
+      <div class="stat-grid" id="stat-grid"></div>
+
+      <div class="admin-card">
+        <h3>Recent Orders</h3>
+        <p class="card-desc">The latest 5 orders placed on the site.</p>
+        <table class="admin-table">
+          <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th></th></tr></thead>
+          <tbody id="recent-orders"></tbody>
+        </table>
+      </div>
+
+      <div class="admin-card">
+        <h3>Low Stock Alert</h3>
+        <p class="card-desc">Products with 5 or fewer units remaining.</p>
+        <table class="admin-table">
+          <thead><tr><th>Product</th><th>SKU</th><th>Stock</th><th></th></tr></thead>
+          <tbody id="low-stock"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script src="admin-ui.js"></script>
+  <script>
+    AdminUI.guard();
+    AdminUI.renderSidebar("dashboard");
+
+    const products = WalkonStore.getProducts();
+    const orders = WalkonStore.getOrders();
+    const messages = WalkonStore.getMessages();
+
+    const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+    const unreadMessages = messages.filter(m => !m.read).length;
+
+    document.getElementById("stat-grid").innerHTML = `
+      <div class="stat-card">
+        <div class="label">Total Products</div>
+        <div class="value">${products.length}</div>
+        <div class="sub">${products.filter(p => p.status === "active").length} active</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total Orders</div>
+        <div class="value">${orders.length}</div>
+        <div class="sub">${orders.filter(o => o.status === "pending").length} pending</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Revenue</div>
+        <div class="value">${WalkonStore.formatMoney(totalRevenue)}</div>
+        <div class="sub">All-time, all orders</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Unread Messages</div>
+        <div class="value">${unreadMessages}</div>
+        <div class="sub">${messages.length} total inquiries</div>
+      </div>
+    `;
+
+    const recentOrders = orders.slice(0, 5);
+    document.getElementById("recent-orders").innerHTML = recentOrders.length
+      ? recentOrders.map(o => `
+          <tr>
+            <td><strong>${o.id}</strong></td>
+            <td>${o.customer.fullName}</td>
+            <td>${WalkonStore.formatMoney(o.total)}</td>
+            <td><span class="status-tag ${o.status}">${o.status}</span></td>
+            <td><a href="orders.html?id=${o.id}" class="icon-btn">View</a></td>
+          </tr>
+        `).join("")
+      : `<tr class="empty-row"><td colspan="5">No orders yet.</td></tr>`;
+
+    const lowStock = products.filter(p => p.stock <= 5 && p.status === "active").sort((a,b) => a.stock - b.stock);
+    document.getElementById("low-stock").innerHTML = lowStock.length
+      ? lowStock.map(p => `
+          <tr>
+            <td>${p.name}</td>
+            <td>${p.sku}</td>
+            <td>${p.stock === 0 ? '<span class="status-tag cancelled">Out of stock</span>' : p.stock}</td>
+            <td><a href="products.html?edit=${p.id}" class="icon-btn">Restock</a></td>
+          </tr>
+        `).join("")
+      : `<tr class="empty-row"><td colspan="4">All products are well stocked.</td></tr>`;
+  </script>
+</body>
+</html>

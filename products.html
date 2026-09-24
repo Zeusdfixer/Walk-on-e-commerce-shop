@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products — WALKON Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <aside class="admin-sidebar" id="admin-sidebar"></aside>
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <h1>Products</h1>
+          <p>Upload, edit, and manage every product on the site.</p>
+        </div>
+        <button class="btn btn-primary" id="new-product-btn">+ Add Product</button>
+      </div>
+
+      <div class="admin-card">
+        <div class="filters-bar" style="margin-bottom:0; padding-bottom:0; border:none;">
+          <input type="text" class="filter-input" id="search-input" placeholder="Search by name or SKU…">
+          <select class="filter-select" id="category-filter">
+            <option value="all">All Categories</option>
+            <option value="men">Men</option>
+            <option value="women">Women</option>
+          </select>
+          <select class="filter-select" id="status-filter">
+            <option value="all">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="draft">Draft</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <table class="admin-table">
+          <thead>
+            <tr><th></th><th>Product</th><th>SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody id="product-rows"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Product Form Modal -->
+  <div class="modal-overlay" id="product-modal">
+    <div class="modal-box" style="max-width:640px; max-height:90vh; overflow-y:auto;">
+      <h3 id="modal-title" style="margin-bottom:20px;">Add Product</h3>
+      <form id="product-form">
+        <input type="hidden" id="p-id">
+
+        <div class="admin-form-grid">
+          <div class="form-field full">
+            <label for="p-name">Product Name</label>
+            <input type="text" id="p-name" required>
+          </div>
+
+          <div class="form-field">
+            <label for="p-sku">SKU</label>
+            <input type="text" id="p-sku" required placeholder="e.g. WK-MHC-BLK-42">
+          </div>
+          <div class="form-field">
+            <label for="p-type">Type</label>
+            <input type="text" id="p-type" required placeholder="e.g. Slides, Loafers">
+          </div>
+
+          <div class="form-field">
+            <label for="p-category">Category</label>
+            <select id="p-category" required>
+              <option value="men">Men</option>
+              <option value="women">Women</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="p-status">Status</label>
+            <select id="p-status" required>
+              <option value="active">Active</option>
+              <option value="draft">Draft</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="p-price">Price (₦)</label>
+            <input type="number" id="p-price" required min="0">
+          </div>
+          <div class="form-field">
+            <label for="p-compare">Compare-at Price (optional)</label>
+            <input type="number" id="p-compare" min="0" placeholder="For showing a sale strike-through">
+          </div>
+
+          <div class="form-field">
+            <label for="p-stock">Stock Quantity</label>
+            <input type="number" id="p-stock" required min="0">
+          </div>
+          <div class="form-field">
+            <label for="p-featured">Featured on Homepage</label>
+            <select id="p-featured">
+              <option value="false">No</option>
+              <option value="true">Yes</option>
+            </select>
+          </div>
+
+          <div class="form-field full">
+            <label for="p-sizes">Sizes (comma-separated, e.g. 40,41,42,43)</label>
+            <input type="text" id="p-sizes" required placeholder="40,41,42,43,44">
+          </div>
+          <div class="form-field full">
+            <label for="p-colors">Colors (comma-separated)</label>
+            <input type="text" id="p-colors" required placeholder="Black, Tan">
+          </div>
+
+          <div class="form-field full">
+            <label for="p-description">Description</label>
+            <textarea id="p-description" required></textarea>
+          </div>
+
+          <div class="form-field full">
+            <label>Product Image</label>
+            <div class="image-drop" id="image-drop">
+              Click to upload an image, or drag one here (PNG/JPG)
+            </div>
+            <input type="file" id="p-image-input" accept="image/*" style="display:none;">
+            <div class="image-preview-grid" id="image-preview-grid"></div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:24px;">
+          <button type="submit" class="btn btn-primary">Save Product</button>
+          <button type="button" class="btn btn-ghost" id="cancel-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete confirm modal -->
+  <div class="modal-overlay" id="delete-modal">
+    <div class="modal-box">
+      <h3>Delete this product?</h3>
+      <p style="font-size:14px; color:#6b6552;">This can't be undone. The product will be removed from the storefront immediately.</p>
+      <div style="display:flex; gap:12px; margin-top:20px;">
+        <button class="btn btn-danger" id="confirm-delete-btn">Delete</button>
+        <button class="btn btn-ghost" id="cancel-delete-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script src="admin-ui.js"></script>
+  <script>
+    AdminUI.guard();
+    AdminUI.renderSidebar("products");
+
+    // Seed product images are stored as paths relative to the site root
+    // (e.g. "images/foo.jpg"); admin pages live one folder deeper, so those
+    // need a "../" prefix. Images uploaded through this form are stored as
+    // base64 data URLs and must be used as-is.
+    function resolveImg(src) {
+      if (!src) return "";
+      if (src.startsWith("data:") || src.startsWith("http") || src.startsWith("../")) return src;
+      return "../" + src;
+    }
+
+    let currentImages = [];
+    let deleteTargetId = null;
+    let searchTerm = "";
+    let categoryFilter = "all";
+    let statusFilter = "all";
+
+    function renderTable() {
+      let products = WalkonStore.getProducts({ category: categoryFilter === "all" ? null : categoryFilter, search: searchTerm });
+      if (statusFilter !== "all") products = products.filter(p => p.status === statusFilter);
+
+      const tbody = document.getElementById("product-rows");
+      if (products.length === 0) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="8">No products match your filters.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = products.map(p => `
+        <tr>
+          <td><img src="${resolveImg(p.images[0])}" class="table-thumb" alt=""></td>
+          <td><strong>${p.name}</strong><br><span style="font-size:12px; color:#8a8168;">${p.type}</span></td>
+          <td>${p.sku}</td>
+          <td style="text-transform:capitalize;">${p.category}</td>
+          <td>${WalkonStore.formatMoney(p.price)}</td>
+          <td>${p.stock}</td>
+          <td><span class="status-tag ${p.status}">${p.status}</span></td>
+          <td>
+            <button class="icon-btn" data-edit="${p.id}">Edit</button>
+            <button class="icon-btn danger" data-delete="${p.id}">Delete</button>
+          </td>
+        </tr>
+      `).join("");
+
+      tbody.querySelectorAll("[data-edit]").forEach(btn => {
+        btn.addEventListener("click", () => openModal(btn.dataset.edit));
+      });
+      tbody.querySelectorAll("[data-delete]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          deleteTargetId = btn.dataset.delete;
+          document.getElementById("delete-modal").classList.add("open");
+        });
+      });
+    }
+
+    document.getElementById("search-input").addEventListener("input", (e) => { searchTerm = e.target.value; renderTable(); });
+    document.getElementById("category-filter").addEventListener("change", (e) => { categoryFilter = e.target.value; renderTable(); });
+    document.getElementById("status-filter").addEventListener("change", (e) => { statusFilter = e.target.value; renderTable(); });
+
+    // ---------- Modal open/close ----------
+    const modal = document.getElementById("product-modal");
+
+    function openModal(editId) {
+      const form = document.getElementById("product-form");
+      form.reset();
+      currentImages = [];
+      document.getElementById("image-preview-grid").innerHTML = "";
+
+      if (editId) {
+        const p = WalkonStore.getProduct(editId);
+        document.getElementById("modal-title").textContent = "Edit Product";
+        document.getElementById("p-id").value = p.id;
+        document.getElementById("p-name").value = p.name;
+        document.getElementById("p-sku").value = p.sku;
+        document.getElementById("p-type").value = p.type;
+        document.getElementById("p-category").value = p.category;
+        document.getElementById("p-status").value = p.status;
+        document.getElementById("p-price").value = p.price;
+        document.getElementById("p-compare").value = p.compareAtPrice || "";
+        document.getElementById("p-stock").value = p.stock;
+        document.getElementById("p-featured").value = String(p.featured);
+        document.getElementById("p-sizes").value = p.sizes.join(",");
+        document.getElementById("p-colors").value = p.colors.join(", ");
+        document.getElementById("p-description").value = p.description;
+        currentImages = [...p.images];
+        renderImagePreviews();
+      } else {
+        document.getElementById("modal-title").textContent = "Add Product";
+        document.getElementById("p-id").value = "";
+      }
+      modal.classList.add("open");
+    }
+
+    document.getElementById("new-product-btn").addEventListener("click", () => openModal(null));
+    document.getElementById("cancel-btn").addEventListener("click", () => modal.classList.remove("open"));
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("open"); });
+
+    // deep-link ?edit=id from dashboard "Restock" link
+    const editParam = new URLSearchParams(window.location.search).get("edit");
+    if (editParam) openModal(editParam);
+
+    // ---------- Image upload (stores as base64 data URL — works offline, no server needed) ----------
+    const imageDrop = document.getElementById("image-drop");
+    const imageInput = document.getElementById("p-image-input");
+    imageDrop.addEventListener("click", () => imageInput.click());
+    imageDrop.addEventListener("dragover", (e) => { e.preventDefault(); imageDrop.style.borderColor = "var(--tan)"; });
+    imageDrop.addEventListener("dragleave", () => { imageDrop.style.borderColor = ""; });
+    imageDrop.addEventListener("drop", (e) => {
+      e.preventDefault();
+      imageDrop.style.borderColor = "";
+      if (e.dataTransfer.files[0]) handleImageFile(e.dataTransfer.files[0]);
+    });
+    imageInput.addEventListener("change", (e) => {
+      if (e.target.files[0]) handleImageFile(e.target.files[0]);
+    });
+
+    function handleImageFile(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentImages.push(e.target.result);
+        renderImagePreviews();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function renderImagePreviews() {
+      document.getElementById("image-preview-grid").innerHTML = currentImages.map((img, i) => `
+        <div class="image-preview">
+          <img src="${resolveImg(img)}" alt="">
+          <button type="button" data-remove-image="${i}">×</button>
+        </div>
+      `).join("");
+      document.querySelectorAll("[data-remove-image]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          currentImages.splice(Number(btn.dataset.removeImage), 1);
+          renderImagePreviews();
+        });
+      });
+    }
+
+    // ---------- Save ----------
+    document.getElementById("product-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const id = document.getElementById("p-id").value || null;
+      const sku = document.getElementById("p-sku").value.trim();
+
+      if (WalkonStore.skuExists(sku, id)) {
+        alert("This SKU is already in use by another product. Please choose a unique SKU.");
+        return;
+      }
+      if (currentImages.length === 0) {
+        alert("Please add at least one product image.");
+        return;
+      }
+
+      const product = {
+        id: id || undefined,
+        name: document.getElementById("p-name").value.trim(),
+        sku,
+        type: document.getElementById("p-type").value.trim(),
+        category: document.getElementById("p-category").value,
+        status: document.getElementById("p-status").value,
+        price: Number(document.getElementById("p-price").value),
+        compareAtPrice: document.getElementById("p-compare").value ? Number(document.getElementById("p-compare").value) : null,
+        stock: Number(document.getElementById("p-stock").value),
+        featured: document.getElementById("p-featured").value === "true",
+        sizes: document.getElementById("p-sizes").value.split(",").map(s => s.trim()).filter(Boolean),
+        colors: document.getElementById("p-colors").value.split(",").map(s => s.trim()).filter(Boolean),
+        description: document.getElementById("p-description").value.trim(),
+        images: currentImages,
+      };
+
+      WalkonStore.saveProduct(product);
+      modal.classList.remove("open");
+      renderTable();
+      alert("Product saved.");
+    });
+
+    // ---------- Delete ----------
+    document.getElementById("confirm-delete-btn").addEventListener("click", () => {
+      if (deleteTargetId) {
+        WalkonStore.deleteProduct(deleteTargetId);
+        deleteTargetId = null;
+        document.getElementById("delete-modal").classList.remove("open");
+        renderTable();
+      }
+    });
+    document.getElementById("cancel-delete-btn").addEventListener("click", () => {
+      deleteTargetId = null;
+      document.getElementById("delete-modal").classList.remove("open");
+    });
+
+    renderTable();
+  </script>
+</body>
+</html>

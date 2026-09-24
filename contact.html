@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us — WALKON</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="site-header" id="site-header"></header>
+
+  <section style="padding-top:56px;">
+    <div class="wrap">
+      <div class="eyebrow">We'd Love to Hear From You</div>
+      <h1 style="margin-bottom:40px;">Contact Us</h1>
+
+      <div class="contact-grid">
+        <div>
+          <h3>Send an Inquiry</h3>
+          <form id="contact-form">
+            <div class="form-row-2">
+              <div class="form-field">
+                <label for="name">Name</label>
+                <input type="text" id="name" required>
+              </div>
+              <div class="form-field">
+                <label for="phone">Phone</label>
+                <input type="tel" id="phone" required>
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="email">Email</label>
+              <input type="email" id="email" required>
+            </div>
+            <div class="form-field">
+              <label for="message">Message</label>
+              <textarea id="message" required placeholder="Tell us what you're looking for…"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Send Message</button>
+          </form>
+        </div>
+
+        <div>
+          <h3>Reach Us Directly</h3>
+          <div class="info-card" style="text-align:left; margin-bottom:16px;">
+            <h4>Call / WhatsApp</h4>
+            <p id="contact-phone" style="font-size:16px; color:var(--charcoal);"></p>
+          </div>
+          <div class="info-card" style="text-align:left; margin-bottom:16px;">
+            <h4>Email</h4>
+            <p id="contact-email" style="font-size:16px; color:var(--charcoal);"></p>
+          </div>
+          <div class="info-card" style="text-align:left;">
+            <h4>Location</h4>
+            <p id="contact-address" style="font-size:16px; color:var(--charcoal);"></p>
+          </div>
+          <a id="whatsapp-link" href="#" target="_blank" rel="noopener" class="btn btn-dark btn-block" style="margin-top:20px;">Chat on WhatsApp</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    WalkonUI.renderHeader("contact");
+    WalkonUI.renderFooter();
+
+    const settings = WalkonStore.getSettings();
+    document.getElementById("contact-phone").textContent = settings.phone;
+    document.getElementById("contact-email").textContent = settings.email;
+    document.getElementById("contact-address").textContent = settings.address;
+    document.getElementById("whatsapp-link").href = `https://wa.me/${settings.whatsapp}`;
+
+    document.getElementById("contact-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      WalkonStore.addMessage({
+        name: document.getElementById("name").value,
+        phone: document.getElementById("phone").value,
+        email: document.getElementById("email").value,
+        message: document.getElementById("message").value,
+      });
+      e.target.reset();
+      WalkonUI.toast("Message sent — we'll get back to you soon!");
+    });
+  </script>
+</body>
+</html>

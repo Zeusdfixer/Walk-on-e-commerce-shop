@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delivery & Returns — WALKON</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="site-header" id="site-header"></header>
+
+  <section style="padding-top:56px;">
+    <div class="wrap" style="max-width:760px;">
+      <div class="eyebrow">Good to Know</div>
+      <h1>Delivery & Returns</h1>
+
+      <h3 style="margin-top:40px;">Delivery</h3>
+      <p id="delivery-note"></p>
+      <p>Orders are typically processed within 1–2 business days. Delivery times vary by location:</p>
+      <ul style="color:#3c362c; line-height:1.9;">
+        <li>Lagos & Ogun: 1–2 business days</li>
+        <li>Other South-West states: 2–4 business days</li>
+        <li>Rest of Nigeria: 3–6 business days</li>
+      </ul>
+      <p>You'll receive a call or WhatsApp message to confirm your delivery details after checkout.</p>
+
+      <hr class="stitch-divider">
+
+      <h3>Returns & Exchanges</h3>
+      <p>We want you walking comfortably. If your pair doesn't fit right:</p>
+      <ul style="color:#3c362c; line-height:1.9;">
+        <li>Contact us within 3 days of delivery to request an exchange or return.</li>
+        <li>Items must be unworn, in original packaging, with tags attached.</li>
+        <li>Size exchanges are free within Lagos; a small delivery fee applies elsewhere.</li>
+        <li>Custom-made or bulk orders are made-to-order and are not eligible for return unless defective.</li>
+      </ul>
+
+      <hr class="stitch-divider">
+
+      <h3>Questions?</h3>
+      <p>Reach us anytime — we reply fast on WhatsApp.</p>
+      <a href="contact.html" class="btn btn-dark">Contact Us</a>
+    </div>
+  </section>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    WalkonUI.renderHeader("delivery");
+    WalkonUI.renderFooter();
+    document.getElementById("delivery-note").textContent = WalkonStore.getSettings().deliveryNote;
+  </script>
+</body>
+</html>

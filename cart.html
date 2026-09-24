@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Cart — WALKON</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="site-header" id="site-header"></header>
+
+  <section style="padding-top:48px;">
+    <div class="wrap">
+      <div class="eyebrow">Your Bag</div>
+      <h1 style="font-size:2.2rem; margin-bottom:32px;">Shopping Cart</h1>
+      <div id="cart-root"></div>
+    </div>
+  </section>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    WalkonUI.renderHeader("shop");
+    WalkonUI.renderFooter();
+
+    function render() {
+      const cart = WalkonStore.getCart();
+      const root = document.getElementById("cart-root");
+
+      if (cart.length === 0) {
+        root.innerHTML = `
+          <div class="empty-state">
+            <h3>Your cart is empty</h3>
+            <p>Add a pair or two — nationwide delivery is on us to arrange.</p>
+            <a href="shop.html" class="btn btn-dark" style="margin-top:16px;">Continue Shopping</a>
+          </div>`;
+        return;
+      }
+
+      let subtotal = 0;
+      const rows = cart.map(item => {
+        const product = WalkonStore.getProduct(item.productId);
+        if (!product) return "";
+        const lineTotal = product.price * item.qty;
+        subtotal += lineTotal;
+        return `
+          <tr>
+            <td>
+              <div class="cart-item-info">
+                <img src="${product.images[0]}" alt="${product.name}">
+                <div>
+                  <div style="font-weight:600;">${product.name}</div>
+                  <div style="font-size:12px; color:#8a8168;">Size ${item.size} · ${item.color}</div>
+                  <button class="remove-link" data-key="${item.key}" style="background:none;border:none;padding:0;margin-top:6px;">Remove</button>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="qty-control">
+                <button class="qty-dec" data-key="${item.key}">−</button>
+                <input type="text" value="${item.qty}" readonly>
+                <button class="qty-inc" data-key="${item.key}">+</button>
+              </div>
+            </td>
+            <td style="text-align:right; font-weight:600;">${WalkonStore.formatMoney(lineTotal)}</td>
+          </tr>
+        `;
+      }).join("");
+
+      root.innerHTML = `
+        <div class="checkout-grid">
+          <div>
+            <table class="cart-table">
+              <thead><tr><th>Product</th><th>Qty</th><th style="text-align:right;">Total</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+          <div class="summary-card">
+            <h3 style="margin-bottom:20px;">Order Summary</h3>
+            <div class="summary-row"><span>Subtotal</span><span>${WalkonStore.formatMoney(subtotal)}</span></div>
+            <div class="summary-row"><span>Delivery</span><span>Calculated at checkout</span></div>
+            <div class="summary-row total"><span>Total</span><span>${WalkonStore.formatMoney(subtotal)}</span></div>
+            <a href="checkout.html" class="btn btn-primary btn-block" style="margin-top:20px;">Proceed to Checkout</a>
+            <a href="shop.html" class="btn btn-ghost btn-block" style="margin-top:10px;">Continue Shopping</a>
+          </div>
+        </div>
+      `;
+
+      document.querySelectorAll(".remove-link").forEach(btn => {
+        btn.addEventListener("click", () => {
+          WalkonStore.removeFromCart(btn.dataset.key);
+          WalkonUI.renderHeader("shop");
+          render();
+        });
+      });
+      document.querySelectorAll(".qty-inc").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const cart = WalkonStore.getCart();
+          const item = cart.find(c => c.key === btn.dataset.key);
+          WalkonStore.updateCartQty(btn.dataset.key, item.qty + 1);
+          WalkonUI.renderHeader("shop");
+          render();
+        });
+      });
+      document.querySelectorAll(".qty-dec").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const cart = WalkonStore.getCart();
+          const item = cart.find(c => c.key === btn.dataset.key);
+          WalkonStore.updateCartQty(btn.dataset.key, item.qty - 1);
+          WalkonUI.renderHeader("shop");
+          render();
+        });
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — WALKON</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="site-header" id="site-header"></header>
+
+  <section style="padding-top:48px;">
+    <div class="wrap">
+      <div class="eyebrow">Almost There</div>
+      <h1 style="font-size:2.2rem; margin-bottom:32px;">Checkout</h1>
+      <div id="checkout-root"></div>
+    </div>
+  </section>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    WalkonUI.renderHeader("shop");
+    WalkonUI.renderFooter();
+
+    const cart = WalkonStore.getCart();
+    const root = document.getElementById("checkout-root");
+
+    if (cart.length === 0) {
+      root.innerHTML = `
+        <div class="empty-state">
+          <h3>Nothing to check out</h3>
+          <p>Your cart is empty right now.</p>
+          <a href="shop.html" class="btn btn-dark" style="margin-top:16px;">Go to Shop</a>
+        </div>`;
+    } else {
+      let subtotal = 0;
+      const lineItems = cart.map(item => {
+        const product = WalkonStore.getProduct(item.productId);
+        subtotal += product.price * item.qty;
+        return { product, item };
+      });
+
+      let selectedPayment = "paystack";
+
+      root.innerHTML = `
+        <form id="checkout-form" class="checkout-grid">
+          <div>
+            <h3 style="margin-bottom:20px;">Shipping Details</h3>
+            <div class="form-row-2">
+              <div class="form-field">
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" required>
+              </div>
+              <div class="form-field">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" required>
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" required>
+            </div>
+            <div class="form-field">
+              <label for="address">Delivery Address</label>
+              <textarea id="address" required></textarea>
+            </div>
+            <div class="form-row-2">
+              <div class="form-field">
+                <label for="city">City</label>
+                <input type="text" id="city" required>
+              </div>
+              <div class="form-field">
+                <label for="state">State</label>
+                <input type="text" id="state" required>
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="notes">Order Notes (optional)</label>
+              <textarea id="notes" placeholder="Any delivery instructions?"></textarea>
+            </div>
+
+            <h3 style="margin:28px 0 16px;">Payment Method</h3>
+            <div class="payment-options" id="payment-options">
+              <label class="payment-option selected">
+                <input type="radio" name="payment" value="paystack" checked style="accent-color:var(--tan);">
+                Pay with Paystack (Card / Bank / USSD)
+              </label>
+              <label class="payment-option">
+                <input type="radio" name="payment" value="flutterwave" style="accent-color:var(--tan);">
+                Pay with Flutterwave (Card / Bank / Transfer)
+              </label>
+              <label class="payment-option">
+                <input type="radio" name="payment" value="delivery" style="accent-color:var(--tan);">
+                Pay on Delivery
+              </label>
+            </div>
+            <p style="font-size:12px; color:#8a8168;">
+              Payment gateway keys aren't configured yet — see <code>README.md</code> to connect a live Paystack or Flutterwave account. Orders placed now are recorded as <strong>pending</strong> in the admin panel.
+            </p>
+          </div>
+
+          <div class="summary-card">
+            <h3 style="margin-bottom:20px;">Order Summary</h3>
+            ${lineItems.map(({ product, item }) => `
+              <div class="summary-row">
+                <span>${product.name} × ${item.qty} <span style="color:#8a8168;">(${item.size}, ${item.color})</span></span>
+                <span>${WalkonStore.formatMoney(product.price * item.qty)}</span>
+              </div>
+            `).join("")}
+            <div class="summary-row total"><span>Total</span><span>${WalkonStore.formatMoney(subtotal)}</span></div>
+            <button type="submit" class="btn btn-primary btn-block" style="margin-top:20px;">Place Order</button>
+          </div>
+        </form>
+      `;
+
+      document.querySelectorAll('input[name="payment"]').forEach(radio => {
+        radio.addEventListener("change", () => {
+          selectedPayment = radio.value;
+          document.querySelectorAll(".payment-option").forEach(l => l.classList.remove("selected"));
+          radio.closest(".payment-option").classList.add("selected");
+        });
+      });
+
+      document.getElementById("checkout-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const order = {
+          customer: {
+            fullName: document.getElementById("fullName").value,
+            phone: document.getElementById("phone").value,
+            email: document.getElementById("email").value,
+            address: document.getElementById("address").value,
+            city: document.getElementById("city").value,
+            state: document.getElementById("state").value,
+            notes: document.getElementById("notes").value,
+          },
+          items: lineItems.map(({ product, item }) => ({
+            productId: product.id,
+            name: product.name,
+            sku: product.sku,
+            price: product.price,
+            size: item.size,
+            color: item.color,
+            qty: item.qty,
+          })),
+          subtotal,
+          total: subtotal,
+          paymentMethod: selectedPayment,
+        };
+        const created = WalkonStore.createOrder(order);
+        WalkonStore.clearCart();
+        window.location.href = "order-confirmation.html?id=" + created.id;
+      });
+    }
+  </script>
+</body>
+</html>

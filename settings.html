@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Settings — WALKON Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <aside class="admin-sidebar" id="admin-sidebar"></aside>
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <h1>Site Settings</h1>
+          <p>Control the content and details shown across the storefront.</p>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <h3>General</h3>
+        <p class="card-desc">Site name, tagline, and homepage hero content.</p>
+        <form id="general-form">
+          <div class="admin-form-grid">
+            <div class="form-field"><label>Site Name</label><input type="text" id="s-siteName"></div>
+            <div class="form-field"><label>Tagline</label><input type="text" id="s-tagline"></div>
+            <div class="form-field full"><label>Hero Headline</label><input type="text" id="s-heroHeadline"></div>
+            <div class="form-field full"><label>Hero Subline</label><input type="text" id="s-heroSubline"></div>
+            <div class="form-field full"><label>Hero Image Path</label><input type="text" id="s-heroImage"><p style="font-size:12px;color:#8a8168;margin-top:4px;">Path relative to the site root, e.g. images/your-photo.jpg</p></div>
+            <div class="form-field full"><label>About Page Text</label><textarea id="s-aboutText" style="min-height:120px;"></textarea></div>
+            <div class="form-field full"><label>Delivery Note</label><textarea id="s-deliveryNote"></textarea></div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="margin-top:16px;">Save General Settings</button>
+        </form>
+      </div>
+
+      <div class="admin-card">
+        <h3>Contact Details</h3>
+        <p class="card-desc">Shown in the footer, contact page, and WhatsApp links.</p>
+        <form id="contact-form">
+          <div class="admin-form-grid">
+            <div class="form-field"><label>Phone (display)</label><input type="text" id="s-phone"></div>
+            <div class="form-field"><label>WhatsApp Number (intl format, no +)</label><input type="text" id="s-whatsapp" placeholder="2347067877417"></div>
+            <div class="form-field"><label>Email</label><input type="email" id="s-email"></div>
+            <div class="form-field"><label>Address</label><input type="text" id="s-address"></div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="margin-top:16px;">Save Contact Details</button>
+        </form>
+      </div>
+
+      <div class="admin-card">
+        <h3>Payment Gateways</h3>
+        <p class="card-desc">Add your live public keys once you have Paystack / Flutterwave accounts. See README.md for full integration steps — checkout currently records orders without charging a card.</p>
+        <form id="payment-form">
+          <div class="admin-form-grid">
+            <div class="form-field"><label>Paystack Public Key</label><input type="text" id="s-paystack" placeholder="pk_live_…"></div>
+            <div class="form-field"><label>Flutterwave Public Key</label><input type="text" id="s-flutterwave" placeholder="FLWPUBK_…"></div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="margin-top:16px;">Save Payment Keys</button>
+        </form>
+      </div>
+
+      <div class="admin-card">
+        <h3>Admin Password</h3>
+        <p class="card-desc">Change your admin login password.</p>
+        <form id="password-form">
+          <div class="admin-form-grid">
+            <div class="form-field"><label>Current Password</label><input type="password" id="s-current-pw" required></div>
+            <div class="form-field"><label>New Password</label><input type="password" id="s-new-pw" required minlength="6"></div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="margin-top:16px;">Update Password</button>
+        </form>
+      </div>
+
+      <div class="admin-card">
+        <h3>Data</h3>
+        <p class="card-desc">Your products, orders, and settings live in this browser's storage. Export a backup regularly, especially before clearing browser data.</p>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <button class="btn btn-ghost" id="export-btn">Export Backup (JSON)</button>
+          <button class="btn btn-ghost" id="import-btn">Import Backup</button>
+          <input type="file" id="import-file" accept="application/json" style="display:none;">
+          <button class="btn btn-danger" id="reset-btn">Reset All Data</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script src="admin-ui.js"></script>
+  <script>
+    AdminUI.guard();
+    AdminUI.renderSidebar("settings");
+
+    const settings = WalkonStore.getSettings();
+    document.getElementById("s-siteName").value = settings.siteName;
+    document.getElementById("s-tagline").value = settings.tagline;
+    document.getElementById("s-heroHeadline").value = settings.heroHeadline;
+    document.getElementById("s-heroSubline").value = settings.heroSubline;
+    document.getElementById("s-heroImage").value = settings.heroImage;
+    document.getElementById("s-aboutText").value = settings.aboutText;
+    document.getElementById("s-deliveryNote").value = settings.deliveryNote;
+    document.getElementById("s-phone").value = settings.phone;
+    document.getElementById("s-whatsapp").value = settings.whatsapp;
+    document.getElementById("s-email").value = settings.email;
+    document.getElementById("s-address").value = settings.address;
+    document.getElementById("s-paystack").value = settings.paystackPublicKey;
+    document.getElementById("s-flutterwave").value = settings.flutterwavePublicKey;
+
+    document.getElementById("general-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      WalkonStore.saveSettings({
+        siteName: document.getElementById("s-siteName").value,
+        tagline: document.getElementById("s-tagline").value,
+        heroHeadline: document.getElementById("s-heroHeadline").value,
+        heroSubline: document.getElementById("s-heroSubline").value,
+        heroImage: document.getElementById("s-heroImage").value,
+        aboutText: document.getElementById("s-aboutText").value,
+        deliveryNote: document.getElementById("s-deliveryNote").value,
+      });
+      alert("General settings saved.");
+    });
+
+    document.getElementById("contact-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      WalkonStore.saveSettings({
+        phone: document.getElementById("s-phone").value,
+        whatsapp: document.getElementById("s-whatsapp").value,
+        email: document.getElementById("s-email").value,
+        address: document.getElementById("s-address").value,
+      });
+      alert("Contact details saved.");
+    });
+
+    document.getElementById("payment-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      WalkonStore.saveSettings({
+        paystackPublicKey: document.getElementById("s-paystack").value,
+        flutterwavePublicKey: document.getElementById("s-flutterwave").value,
+      });
+      alert("Payment keys saved.");
+    });
+
+    document.getElementById("password-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const current = document.getElementById("s-current-pw").value;
+      const next = document.getElementById("s-new-pw").value;
+      if (WalkonStore.changeAdminPassword(current, next)) {
+        alert("Password updated.");
+        e.target.reset();
+      } else {
+        alert("Current password is incorrect.");
+      }
+    });
+
+    document.getElementById("export-btn").addEventListener("click", () => {
+      const data = WalkonStore.exportData();
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `walkon-backup-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById("import-btn").addEventListener("click", () => {
+      document.getElementById("import-file").click();
+    });
+    document.getElementById("import-file").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          WalkonStore.importData(ev.target.result);
+          alert("Backup imported. Reloading…");
+          window.location.reload();
+        } catch (err) {
+          alert("That file couldn't be read as a valid WALKON backup.");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    document.getElementById("reset-btn").addEventListener("click", () => {
+      if (confirm("This will erase all products, orders, messages, and settings, restoring the original demo data. This can't be undone. Continue?")) {
+        WalkonStore.resetAllData();
+        window.location.href = "login.html";
+      }
+    });
+  </script>
+</body>
+</html>

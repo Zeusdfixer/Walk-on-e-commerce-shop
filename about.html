@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us — WALKON</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="site-header" id="site-header"></header>
+
+  <section style="padding-top:56px;">
+    <div class="wrap two-col">
+      <div>
+        <div class="eyebrow">Our Story</div>
+        <h1>Walk in Style, Walk in Confidence</h1>
+        <p id="about-text" style="font-size:1.05rem;"></p>
+        <a href="shop.html" class="btn btn-dark" style="margin-top:8px;">Shop the Collection</a>
+      </div>
+      <img src="images/product-loafers-slides-set.jpg" alt="WALKON footwear">
+    </div>
+  </section>
+
+  <hr class="stitch-divider" style="max-width:1240px; margin:0 auto;">
+
+  <section>
+    <div class="wrap">
+      <div class="section-head"><h2>Why Choose WALKON</h2></div>
+      <div class="info-grid">
+        <div class="info-card"><div class="icon">I</div><h4>Premium Materials</h4><p>Genuine leather & suede sourced with care</p></div>
+        <div class="info-card"><div class="icon">II</div><h4>Comfort Guaranteed</h4><p>Every last is tested for all-day wear</p></div>
+        <div class="info-card"><div class="icon">III</div><h4>Stylish & Unique</h4><p>Designs you won't find everywhere</p></div>
+        <div class="info-card"><div class="icon">IV</div><h4>Strong & Durable</h4><p>Built to outlast a season</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-charcoal">
+    <div class="wrap" style="text-align:center; max-width:600px;">
+      <div class="eyebrow" style="color:var(--brass)">Custom & Bulk</div>
+      <h2>We Handle Bulk Production</h2>
+      <p>Available in different colors and sizes, and custom-made in any color you want. Whether you're outfitting a team or restocking a store, WALKON can scale with you.</p>
+      <a href="contact.html" class="btn btn-primary">Talk to Us</a>
+    </div>
+  </section>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    WalkonUI.renderHeader("about");
+    WalkonUI.renderFooter();
+    document.getElementById("about-text").textContent = WalkonStore.getSettings().aboutText;
+  </script>
+</body>
+</html>

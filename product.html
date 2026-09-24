@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">Product — WALKON</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="site-header" id="site-header"></header>
+
+  <section style="padding-top:32px;">
+    <div class="wrap">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <div id="product-root"></div>
+    </div>
+  </section>
+
+  <section id="related-section" style="display:none;">
+    <div class="wrap">
+      <div class="section-head"><h2>You May Also Like</h2></div>
+      <div class="product-grid" id="related-grid"></div>
+    </div>
+  </section>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    WalkonUI.renderHeader("shop");
+    WalkonUI.renderFooter();
+
+    const id = WalkonUI.qs("id");
+    const product = WalkonStore.getProduct(id);
+    const root = document.getElementById("product-root");
+
+    if (!product) {
+      root.innerHTML = `<div class="empty-state"><h3>Product not found</h3><p>It may have been removed.</p><a href="shop.html" class="btn btn-dark" style="margin-top:16px;">Back to Shop</a></div>`;
+    } else {
+      document.title = product.name + " — WALKON";
+      document.getElementById("breadcrumb").innerHTML =
+        `<a href="index.html">Home</a> / <a href="shop.html">Shop</a> / ${product.name}`;
+
+      let selectedSize = product.sizes[0];
+      let selectedColor = product.colors[0];
+      let qty = 1;
+
+      function stockNote() {
+        if (product.stock <= 0) return `<div class="stock-note out">Out of stock</div>`;
+        if (product.stock <= 5) return `<div class="stock-note low">Only ${product.stock} left in stock</div>`;
+        return `<div class="stock-note">In stock — ready to ship</div>`;
+      }
+
+      root.innerHTML = `
+        <div class="product-detail">
+          <div class="pd-gallery">
+            <img src="${product.images[0]}" alt="${product.name}">
+          </div>
+          <div class="pd-info">
+            <div class="eyebrow">${product.type}</div>
+            <h1 style="font-size:2rem;">${product.name}</h1>
+            <div class="pd-sku">SKU: ${product.sku}</div>
+            <div class="pd-price">
+              ${WalkonStore.formatMoney(product.price)}
+              ${product.compareAtPrice ? `<span class="price-strike" style="font-size:1.1rem; margin-left:10px;">${WalkonStore.formatMoney(product.compareAtPrice)}</span>` : ""}
+            </div>
+            ${stockNote()}
+            <p>${product.description}</p>
+
+            <div class="option-group">
+              <span class="option-label">Color</span>
+              <div id="color-options">
+                ${product.colors.map(c => `<button class="option-btn ${c === selectedColor ? "selected" : ""}" data-color="${c}">${c}</button>`).join("")}
+              </div>
+            </div>
+
+            <div class="option-group">
+              <span class="option-label">Size (EU)</span>
+              <div id="size-options">
+                ${product.sizes.map(s => `<button class="option-btn ${s === selectedSize ? "selected" : ""}" data-size="${s}">${s}</button>`).join("")}
+              </div>
+            </div>
+
+            <div class="qty-row">
+              <span class="option-label" style="margin:0;">Qty</span>
+              <div class="qty-control">
+                <button id="qty-minus">−</button>
+                <input type="text" id="qty-input" value="1" readonly>
+                <button id="qty-plus">+</button>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" id="add-to-cart-btn" ${product.stock <= 0 ? "disabled" : ""}>
+              ${product.stock <= 0 ? "Out of Stock" : "Add to Cart"}
+            </button>
+            <a href="https://wa.me/${WalkonStore.getSettings().whatsapp}?text=${encodeURIComponent("Hi WALKON, I'm interested in " + product.name + " (SKU " + product.sku + ")")}" target="_blank" rel="noopener" class="btn btn-ghost btn-block" style="margin-top:10px;">Ask on WhatsApp</a>
+          </div>
+        </div>
+      `;
+
+      document.querySelectorAll("#color-options .option-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          selectedColor = btn.dataset.color;
+          document.querySelectorAll("#color-options .option-btn").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+        });
+      });
+      document.querySelectorAll("#size-options .option-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          selectedSize = btn.dataset.size;
+          document.querySelectorAll("#size-options .option-btn").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+        });
+      });
+
+      const qtyInput = document.getElementById("qty-input");
+      document.getElementById("qty-minus").addEventListener("click", () => {
+        qty = Math.max(1, qty - 1);
+        qtyInput.value = qty;
+      });
+      document.getElementById("qty-plus").addEventListener("click", () => {
+        qty = Math.min(product.stock, qty + 1);
+        qtyInput.value = qty;
+      });
+
+      const addBtn = document.getElementById("add-to-cart-btn");
+      if (addBtn) {
+        addBtn.addEventListener("click", () => {
+          WalkonStore.addToCart(product.id, selectedSize, selectedColor, qty);
+          WalkonUI.renderHeader("shop");
+          WalkonUI.toast(`Added "${product.name}" to cart`);
+        });
+      }
+
+      // related products
+      const related = WalkonStore.getProducts({ category: product.category, status: "active" })
+        .filter(p => p.id !== product.id)
+        .slice(0, 4);
+      if (related.length) {
+        document.getElementById("related-section").style.display = "block";
+        document.getElementById("related-grid").innerHTML = related.map(WalkonUI.productCard).join("");
+      }
+    }
+  </script>
+</body>
+</html>

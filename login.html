@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — WALKON</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+  <div class="login-shell">
+    <div class="login-card">
+      <div class="brand">WALKON<span style="color:var(--tan);">.</span></div>
+      <span class="subtitle">Admin Panel Login</span>
+
+      <div class="login-error" id="login-error">Invalid username or password.</div>
+
+      <form id="login-form">
+        <div class="form-field">
+          <label for="username">Username</label>
+          <input type="text" id="username" required autocomplete="username">
+        </div>
+        <div class="form-field">
+          <label for="password">Password</label>
+          <input type="password" id="password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Log In</button>
+      </form>
+
+      <p style="font-size:12px; color:#8a8168; margin-top:20px;">
+        Default login: <strong>admin</strong> / <strong>walkon2026</strong><br>
+        Change this immediately from Settings after your first login.
+      </p>
+      <a href="../index.html" style="font-size:13px; display:inline-block; margin-top:8px;">Back to site</a>
+    </div>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script>
+    if (WalkonStore.isLoggedIn()) {
+      window.location.href = "index.html";
+    }
+
+    document.getElementById("login-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      if (WalkonStore.login(username, password)) {
+        window.location.href = "index.html";
+      } else {
+        document.getElementById("login-error").style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>

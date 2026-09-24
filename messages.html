@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messages — WALKON Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <aside class="admin-sidebar" id="admin-sidebar"></aside>
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <h1>Messages</h1>
+          <p>Inquiries submitted through the Contact page.</p>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <table class="admin-table">
+          <thead><tr><th></th><th>From</th><th>Message</th><th>Date</th><th></th></tr></thead>
+          <tbody id="messages-body"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script src="admin-ui.js"></script>
+  <script>
+    AdminUI.guard();
+    AdminUI.renderSidebar("messages");
+
+    function render() {
+      const messages = WalkonStore.getMessages();
+      const tbody = document.getElementById("messages-body");
+      if (messages.length === 0) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="5">No messages yet.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = messages.map(m => `
+        <tr style="${m.read ? "" : "background:#fbf3ea;"}">
+          <td>${m.read ? "" : `<span class="status-tag pending">New</span>`}</td>
+          <td><strong>${m.name}</strong><br><span style="font-size:12px; color:#8a8168;">${m.phone} · ${m.email}</span></td>
+          <td style="max-width:340px;">${m.message}</td>
+          <td>${new Date(m.createdAt).toLocaleDateString("en-NG", { day:"numeric", month:"short" })}</td>
+          <td>
+            <a href="https://wa.me/${m.phone.replace(/\D/g,'')}" target="_blank" rel="noopener" class="icon-btn">WhatsApp</a>
+            ${m.read ? "" : `<button class="icon-btn" data-read="${m.id}">Mark Read</button>`}
+          </td>
+        </tr>
+      `).join("");
+
+      tbody.querySelectorAll("[data-read]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          WalkonStore.markMessageRead(btn.dataset.read);
+          render();
+        });
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>

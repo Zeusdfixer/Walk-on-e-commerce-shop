@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmed — WALKON</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="site-header" id="site-header"></header>
+
+  <section style="padding-top:64px; padding-bottom:64px;">
+    <div class="wrap" style="max-width:640px; text-align:center;" id="confirm-root"></div>
+  </section>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    WalkonUI.renderHeader("shop");
+    WalkonUI.renderFooter();
+
+    const orderId = WalkonUI.qs("id");
+    const order = WalkonStore.getOrder(orderId);
+    const root = document.getElementById("confirm-root");
+
+    if (!order) {
+      root.innerHTML = `<h2>Order not found</h2><a href="shop.html" class="btn btn-dark">Back to Shop</a>`;
+    } else {
+      root.innerHTML = `
+        <div class="eyebrow" style="margin-bottom:12px;">Order Confirmed</div>
+        <h1 style="font-size:2rem;">Thank you, ${order.customer.fullName.split(" ")[0]}!</h1>
+        <p style="margin-bottom:24px;">Your order has been received. We'll reach out on <strong>${order.customer.phone}</strong> to confirm delivery details.</p>
+        <div class="summary-card" style="text-align:left; margin-bottom:24px;">
+          <div class="summary-row"><span>Order ID</span><span>${order.id}</span></div>
+          <div class="summary-row"><span>Payment method</span><span style="text-transform:capitalize;">${order.paymentMethod}</span></div>
+          <div class="summary-row total"><span>Total</span><span>${WalkonStore.formatMoney(order.total)}</span></div>
+        </div>
+        <a href="shop.html" class="btn btn-primary">Continue Shopping</a>
+      `;
+    }
+  </script>
+</body>
+</html>

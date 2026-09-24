@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders — WALKON Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <aside class="admin-sidebar" id="admin-sidebar"></aside>
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <h1>Orders</h1>
+          <p>Every order placed through checkout lands here.</p>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <table class="admin-table">
+          <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Date</th><th></th></tr></thead>
+          <tbody id="orders-body"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="order-modal">
+    <div class="modal-box" style="max-width:520px;" id="order-modal-content"></div>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script src="admin-ui.js"></script>
+  <script>
+    AdminUI.guard();
+    AdminUI.renderSidebar("orders");
+
+    function render() {
+      const orders = WalkonStore.getOrders();
+      const tbody = document.getElementById("orders-body");
+      if (orders.length === 0) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="8">No orders yet.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = orders.map(o => `
+        <tr>
+          <td><strong>${o.id}</strong></td>
+          <td>${o.customer.fullName}<br><span style="font-size:12px;color:#8a8168;">${o.customer.phone}</span></td>
+          <td>${o.items.reduce((n,i) => n+i.qty, 0)} item(s)</td>
+          <td>${WalkonStore.formatMoney(o.total)}</td>
+          <td style="text-transform:capitalize;">${o.paymentMethod}</td>
+          <td><span class="status-tag ${o.status}">${o.status}</span></td>
+          <td>${new Date(o.createdAt).toLocaleDateString("en-NG", { day:"numeric", month:"short", year:"numeric" })}</td>
+          <td><button class="icon-btn" data-view="${o.id}">View</button></td>
+        </tr>
+      `).join("");
+
+      tbody.querySelectorAll("[data-view]").forEach(btn => {
+        btn.addEventListener("click", () => openOrder(btn.dataset.view));
+      });
+    }
+
+    function openOrder(id) {
+      const o = WalkonStore.getOrder(id);
+      const content = document.getElementById("order-modal-content");
+      content.innerHTML = `
+        <h3>${o.id}</h3>
+        <p style="font-size:13px; color:#8a8168; margin-bottom:20px;">Placed ${new Date(o.createdAt).toLocaleString("en-NG")}</p>
+
+        <div style="margin-bottom:16px;">
+          <strong>${o.customer.fullName}</strong><br>
+          <span style="font-size:13px; color:#6b6552;">${o.customer.phone} · ${o.customer.email}</span><br>
+          <span style="font-size:13px; color:#6b6552;">${o.customer.address}, ${o.customer.city}, ${o.customer.state}</span>
+          ${o.customer.notes ? `<br><span style="font-size:13px; color:#6b6552;">Note: ${o.customer.notes}</span>` : ""}
+        </div>
+
+        <div style="margin-bottom:16px;">
+          ${o.items.map(i => `
+            <div class="summary-row"><span>${i.name} (${i.size}, ${i.color}) × ${i.qty}</span><span>${WalkonStore.formatMoney(i.price * i.qty)}</span></div>
+          `).join("")}
+          <div class="summary-row total"><span>Total</span><span>${WalkonStore.formatMoney(o.total)}</span></div>
+        </div>
+
+        <div class="form-field">
+          <label for="order-status">Update Status</label>
+          <select id="order-status">
+            <option value="pending" ${o.status === "pending" ? "selected" : ""}>Pending</option>
+            <option value="confirmed" ${o.status === "confirmed" ? "selected" : ""}>Confirmed</option>
+            <option value="delivered" ${o.status === "delivered" ? "selected" : ""}>Delivered</option>
+            <option value="cancelled" ${o.status === "cancelled" ? "selected" : ""}>Cancelled</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:12px; margin-top:16px;">
+          <button class="btn btn-primary" id="save-status-btn">Save Status</button>
+          <button class="btn btn-ghost" id="close-order-btn">Close</button>
+        </div>
+      `;
+      document.getElementById("order-modal").classList.add("open");
+      document.getElementById("close-order-btn").addEventListener("click", () => {
+        document.getElementById("order-modal").classList.remove("open");
+      });
+      document.getElementById("save-status-btn").addEventListener("click", () => {
+        WalkonStore.updateOrderStatus(o.id, document.getElementById("order-status").value);
+        document.getElementById("order-modal").classList.remove("open");
+        render();
+      });
+    }
+
+    document.getElementById("order-modal").addEventListener("click", (e) => {
+      if (e.target.id === "order-modal") e.target.classList.remove("open");
+    });
+
+    render();
+
+    const idParam = new URLSearchParams(window.location.search).get("id");
+    if (idParam) openOrder(idParam);
+  </script>
+</body>
+</html>

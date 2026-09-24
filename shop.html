@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop — WALKON</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="site-header" id="site-header"></header>
+
+  <section style="padding-top:48px; padding-bottom:0;">
+    <div class="wrap">
+      <div class="eyebrow">Full Collection</div>
+      <h1 style="font-size:2.4rem;">Shop All Footwear</h1>
+    </div>
+  </section>
+
+  <section style="padding-top:32px;">
+    <div class="wrap">
+      <div class="filters-bar">
+        <div class="pill-group" id="category-pills">
+          <button class="pill active" data-category="all">All</button>
+          <button class="pill" data-category="men">Men</button>
+          <button class="pill" data-category="women">Women</button>
+        </div>
+        <select class="filter-select" id="sort-select">
+          <option value="newest">Newest</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="name-asc">Name: A–Z</option>
+        </select>
+        <input type="text" class="filter-input" id="search-input" placeholder="Search products or SKU…">
+      </div>
+      <div class="product-grid" id="product-grid"></div>
+      <div id="empty-state" style="display:none;" class="empty-state">
+        <h3>No products found</h3>
+        <p>Try a different filter or search term.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    WalkonUI.renderHeader("shop");
+    WalkonUI.renderFooter();
+
+    let currentCategory = WalkonUI.qs("category") || "all";
+    let currentSearch = "";
+    let currentSort = "newest";
+
+    document.querySelectorAll("#category-pills .pill").forEach((btn) => {
+      if (btn.dataset.category === currentCategory) {
+        document.querySelectorAll("#category-pills .pill").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+      }
+      btn.addEventListener("click", () => {
+        currentCategory = btn.dataset.category;
+        document.querySelectorAll("#category-pills .pill").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        render();
+      });
+    });
+
+    document.getElementById("search-input").addEventListener("input", (e) => {
+      currentSearch = e.target.value;
+      render();
+    });
+
+    document.getElementById("sort-select").addEventListener("change", (e) => {
+      currentSort = e.target.value;
+      render();
+    });
+
+    function render() {
+      let products = WalkonStore.getProducts({
+        category: currentCategory,
+        search: currentSearch,
+        status: "active",
+      });
+
+      if (currentSort === "price-asc") products.sort((a, b) => a.price - b.price);
+      else if (currentSort === "price-desc") products.sort((a, b) => b.price - a.price);
+      else if (currentSort === "name-asc") products.sort((a, b) => a.name.localeCompare(b.name));
+
+      const grid = document.getElementById("product-grid");
+      const empty = document.getElementById("empty-state");
+      if (products.length === 0) {
+        grid.innerHTML = "";
+        empty.style.display = "block";
+      } else {
+        empty.style.display = "none";
+        grid.innerHTML = products.map(WalkonUI.productCard).join("");
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>
