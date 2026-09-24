@@ -8,7 +8,7 @@ site proposal (home, shop, product detail, cart, checkout, about, delivery
 
 No build step, no `npm install`. It's plain HTML/CSS/JS.
 
-1. Unzip this folder.
+1. Open this folder.
 2. Open it in VS Code (or any editor).
 3. Serve it with any static server — don't just double-click `index.html`,
    because browsers block some storage/file features on `file://` URLs.
